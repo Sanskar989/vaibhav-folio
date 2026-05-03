@@ -16,32 +16,37 @@ const app = express();
 app.use(express.json());
 
 // ----------------------------------------------------
-// DATABASE CONNECTION
+// DATABASE CONNECTION (Serverless-safe lazy connect)
 // ----------------------------------------------------
-let dbConnected = false;
-let dbError = "";
-
 const MONGODB_URI = process.env.MONGODB_URI;
+let cachedConnection: Promise<typeof mongoose> | null = null;
 
-if (!MONGODB_URI) {
-  dbError = "Missing MONGODB_URI environment variable.";
-  console.error("Database connection failed:", dbError);
-} else {
-  mongoose.connect(MONGODB_URI)
-    .then(() => {
-      dbConnected = true;
+function connectDB() {
+  if (!MONGODB_URI) {
+    return Promise.reject(new Error("Missing MONGODB_URI environment variable."));
+  }
+  if (!cachedConnection) {
+    cachedConnection = mongoose.connect(MONGODB_URI).then((m) => {
       console.log("Connected to MongoDB successfully.");
-    })
-    .catch((err) => {
-      dbError = err.message;
-      console.error("MongoDB connection error:", err);
+      return m;
     });
+  }
+  return cachedConnection;
+}
+
+async function ensureDB(res: any): Promise<boolean> {
+  try {
+    await connectDB();
+    return true;
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: "Database not connected: " + err.message });
+    return false;
+  }
 }
 
 // ----------------------------------------------------
 // MONGOOSE SCHEMAS
 // ----------------------------------------------------
-
 const gallerySchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, default: "" },
@@ -49,8 +54,6 @@ const gallerySchema = new mongoose.Schema({
   image: { type: String, required: true },
   uploadedAt: { type: Date, default: Date.now },
 });
-
-// Avoid OverwriteModelError in serverless environments
 const GalleryItem = mongoose.models.GalleryItem || mongoose.model("GalleryItem", gallerySchema);
 
 const contactSchema = new mongoose.Schema({
@@ -76,11 +79,8 @@ const Notification = mongoose.models.Notification || mongoose.model("Notificatio
 // ----------------------------------------------------
 // HELPER MIDDLEWARE
 // ----------------------------------------------------
-
-// Multer using memory storage for serverless (kept for compatibility if needed)
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
-// Admin Password Auth
 const ADMIN_PASSWORD = "vaibhavtravel";
 function requireAdminPassword(req: any, res: any, next: any) {
   const pw = req.headers["x-admin-password"] || req.body?.password;
@@ -88,32 +88,19 @@ function requireAdminPassword(req: any, res: any, next: any) {
   next();
 }
 
-function checkDB(res: any) {
-  if (!dbConnected) {
-    res.status(500).json({ success: false, message: "Database not connected: " + dbError });
-    return false;
-  }
-  return true;
-}
-
 // ----------------------------------------------------
 // CONTACT SUBMISSIONS
 // ----------------------------------------------------
 app.post("/api/contact", async (req, res) => {
-  if (!checkDB(res)) return;
+  if (!(await ensureDB(res))) return;
   try {
     const { name, email, subject, message } = req.body;
     if (!name || !email || !message) {
       return res.status(400).json({ success: false, message: "Name, email, and message are required." });
     }
-
     await ContactSubmission.create({ name, email, subject, message });
     await Notification.create({ type: "contact", name, email, subject, message });
-
-    res.status(200).json({
-      success: true,
-      message: "Your message has been received! Vaibhav will get back to you soon.",
-    });
+    res.status(200).json({ success: true, message: "Your message has been received! Vaibhav will get back to you soon." });
   } catch (err: any) {
     console.error("Failed to save contact message:", err);
     res.status(500).json({ success: false, message: "Failed to send message: " + err.message });
@@ -121,7 +108,7 @@ app.post("/api/contact", async (req, res) => {
 });
 
 // ----------------------------------------------------
-// ADMIN AUTH
+// ADMIN AUTH (no DB needed)
 // ----------------------------------------------------
 app.post("/api/admin/login", (req, res) => {
   const { password } = req.body;
@@ -136,9 +123,8 @@ app.post("/api/admin/login", (req, res) => {
 // GALLERY API
 // ----------------------------------------------------
 app.get("/api/gallery", async (_req, res) => {
-  if (!checkDB(res)) return;
+  if (!(await ensureDB(res))) return;
   try {
-    // Return id instead of _id for frontend compatibility
     const items = await GalleryItem.find().sort({ uploadedAt: -1 }).lean();
     const formattedItems = items.map((item: any) => ({
       id: item._id.toString(),
@@ -155,24 +141,21 @@ app.get("/api/gallery", async (_req, res) => {
 });
 
 app.post("/api/admin/gallery", requireAdminPassword, async (req: any, res: any) => {
-  if (!checkDB(res)) return;
+  if (!(await ensureDB(res))) return;
   try {
     const imageUrl = req.body.imageUrl;
-    
     if (!imageUrl) {
       return res.status(400).json({ success: false, message: "No media URL provided" });
     }
-
     const doc = await GalleryItem.create({
       title: req.body.title || "Untitled",
       description: req.body.description || "",
       category: req.body.category || "General",
       image: imageUrl,
     });
-
-    res.json({ 
-      success: true, 
-      item: { id: doc._id.toString(), title: doc.title, description: doc.description, category: doc.category, image: doc.image, uploadedAt: doc.uploadedAt } 
+    res.json({
+      success: true,
+      item: { id: doc._id.toString(), title: doc.title, description: doc.description, category: doc.category, image: doc.image, uploadedAt: doc.uploadedAt }
     });
   } catch (err: any) {
     console.error("Gallery upload failed:", err);
@@ -181,7 +164,7 @@ app.post("/api/admin/gallery", requireAdminPassword, async (req: any, res: any) 
 });
 
 app.put("/api/admin/gallery/:id", requireAdminPassword, async (req: any, res: any) => {
-  if (!checkDB(res)) return;
+  if (!(await ensureDB(res))) return;
   try {
     const { title, description, category } = req.body;
     await GalleryItem.findByIdAndUpdate(req.params.id, { title, description, category });
@@ -192,7 +175,7 @@ app.put("/api/admin/gallery/:id", requireAdminPassword, async (req: any, res: an
 });
 
 app.delete("/api/admin/gallery/:id", requireAdminPassword, async (req: any, res: any) => {
-  if (!checkDB(res)) return;
+  if (!(await ensureDB(res))) return;
   try {
     await GalleryItem.findByIdAndDelete(req.params.id);
     res.json({ success: true });
@@ -207,13 +190,10 @@ app.delete("/api/admin/gallery/:id", requireAdminPassword, async (req: any, res:
 app.get("/api/admin/cloudinary-signature", requireAdminPassword, (req, res) => {
   try {
     const timestamp = Math.round(new Date().getTime() / 1000);
-    // Cloudinary requires a signature of the parameters being passed.
-    // For direct uploads, we usually just need a timestamp.
     const signature = cloudinary.utils.api_sign_request(
       { timestamp },
       process.env.CLOUDINARY_API_SECRET!
     );
-
     res.json({ success: true, timestamp, signature, apiKey: process.env.CLOUDINARY_API_KEY });
   } catch (err: any) {
     res.status(500).json({ success: false, message: "Failed to generate signature: " + err.message });
@@ -224,7 +204,7 @@ app.get("/api/admin/cloudinary-signature", requireAdminPassword, (req, res) => {
 // NOTIFICATIONS API
 // ----------------------------------------------------
 app.get("/api/admin/notifications", requireAdminPassword, async (req, res) => {
-  if (!checkDB(res)) return;
+  if (!(await ensureDB(res))) return;
   try {
     const notifications = await Notification.find().sort({ createdAt: -1 }).lean();
     const formattedNotifs = notifications.map((n: any) => ({
@@ -244,7 +224,7 @@ app.get("/api/admin/notifications", requireAdminPassword, async (req, res) => {
 });
 
 app.put("/api/admin/notifications/:id/read", requireAdminPassword, async (req: any, res: any) => {
-  if (!checkDB(res)) return;
+  if (!(await ensureDB(res))) return;
   try {
     await Notification.findByIdAndUpdate(req.params.id, { read: true });
     res.json({ success: true });

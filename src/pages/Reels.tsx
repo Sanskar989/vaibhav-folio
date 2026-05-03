@@ -1,9 +1,20 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion, useInView } from 'motion/react';
 import { Instagram, Linkedin, ExternalLink, Heart, MessageCircle, Send, Bookmark, Play, ChevronDown, MapPin } from 'lucide-react';
 
 const INSTAGRAM_URL = "https://www.instagram.com/live_in_travel_zone_";
 const LINKEDIN_URL = "https://www.linkedin.com/in/vaibhav-goyal-1b8a101ba";
+
+function ElfsightWidget() {
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = "https://elfsightcdn.com/platform.js";
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
+
+  return <div className="elfsight-app-e36fee7a-316e-4cc3-854d-bf4cd2873bf5" data-elfsight-app-lazy></div>;
+}
 
 const TRAVEL_REELS = [
   {
@@ -282,37 +293,8 @@ export default function Reels() {
         </div>
 
         <div className="glass-card border-brand-accent/20 p-6 rounded-2xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="rounded-2xl overflow-hidden border border-white/10 bg-black">
-              <iframe
-                src="https://www.instagram.com/reel/live_in_travel_zone_/embed"
-                className="w-full border-0"
-                style={{ minHeight: '500px' }}
-                allow="encrypted-media"
-                title="Instagram Reel 1"
-                loading="lazy"
-              />
-            </div>
-            <div className="rounded-2xl overflow-hidden border border-white/10 bg-black">
-              <iframe
-                src="https://www.instagram.com/live_in_travel_zone_/embed"
-                className="w-full border-0"
-                style={{ minHeight: '500px' }}
-                allow="encrypted-media"
-                title="Instagram Feed"
-                loading="lazy"
-              />
-            </div>
-            <div className="rounded-2xl overflow-hidden border border-white/10 bg-black hidden lg:block">
-              <iframe
-                src="https://www.instagram.com/live_in_travel_zone_/embed"
-                className="w-full border-0"
-                style={{ minHeight: '500px' }}
-                allow="encrypted-media"
-                title="Instagram Feed 2"
-                loading="lazy"
-              />
-            </div>
+          <div className="w-full bg-black/20 rounded-xl overflow-hidden min-h-[500px]">
+            <ElfsightWidget />
           </div>
           <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer"
             className="flex items-center justify-center gap-2 mt-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white text-sm font-bold hover:scale-[1.02] transition-transform">

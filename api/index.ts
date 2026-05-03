@@ -1,6 +1,9 @@
 import express from "express";
 import multer from "multer";
 import admin from "firebase-admin";
+import * as dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 app.use(express.json());

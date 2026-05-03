@@ -1,6 +1,6 @@
 import express from "express";
 import multer from "multer";
-import admin from "firebase-admin";
+import mongoose from "mongoose";
 import * as dotenv from "dotenv";
 
 dotenv.config();
@@ -8,31 +8,69 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-let firebaseInitialized = false;
-let initError = "";
+// ----------------------------------------------------
+// DATABASE CONNECTION
+// ----------------------------------------------------
+let dbConnected = false;
+let dbError = "";
 
-// Initialize Firebase Admin
-if (!admin.apps.length) {
-  try {
-    const encoded = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
-    if (!encoded) {
-      throw new Error("Missing FIREBASE_SERVICE_ACCOUNT_BASE64 environment variable.");
-    }
-    const serviceAccount = JSON.parse(Buffer.from(encoded, 'base64').toString('utf-8'));
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      storageBucket: "vaibhav-resume-880f6.appspot.com"
-    });
-    firebaseInitialized = true;
-  } catch (e: any) {
-    console.error("Firebase Admin initialization failed", e);
-    initError = e.message;
-  }
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  dbError = "Missing MONGODB_URI environment variable.";
+  console.error("Database connection failed:", dbError);
 } else {
-  firebaseInitialized = true;
+  mongoose.connect(MONGODB_URI)
+    .then(() => {
+      dbConnected = true;
+      console.log("Connected to MongoDB successfully.");
+    })
+    .catch((err) => {
+      dbError = err.message;
+      console.error("MongoDB connection error:", err);
+    });
 }
 
-// Multer using memory storage for serverless
+// ----------------------------------------------------
+// MONGOOSE SCHEMAS
+// ----------------------------------------------------
+
+const gallerySchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: { type: String, default: "" },
+  category: { type: String, default: "General" },
+  image: { type: String, required: true },
+  uploadedAt: { type: Date, default: Date.now },
+});
+
+// Avoid OverwriteModelError in serverless environments
+const GalleryItem = mongoose.models.GalleryItem || mongoose.model("GalleryItem", gallerySchema);
+
+const contactSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  subject: { type: String, default: "No Subject" },
+  message: { type: String, required: true },
+  submittedAt: { type: Date, default: Date.now },
+});
+const ContactSubmission = mongoose.models.ContactSubmission || mongoose.model("ContactSubmission", contactSchema);
+
+const notificationSchema = new mongoose.Schema({
+  type: { type: String, default: "contact" },
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  subject: { type: String, default: "No Subject" },
+  message: { type: String, required: true },
+  read: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
+});
+const Notification = mongoose.models.Notification || mongoose.model("Notification", notificationSchema);
+
+// ----------------------------------------------------
+// HELPER MIDDLEWARE
+// ----------------------------------------------------
+
+// Multer using memory storage for serverless (kept for compatibility if needed)
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 // Admin Password Auth
@@ -43,10 +81,9 @@ function requireAdminPassword(req: any, res: any, next: any) {
   next();
 }
 
-// Helper to check DB
-function checkFirebase(res: any) {
-  if (!firebaseInitialized) {
-    res.status(500).json({ success: false, message: "Firebase not initialized: " + initError });
+function checkDB(res: any) {
+  if (!dbConnected) {
+    res.status(500).json({ success: false, message: "Database not connected: " + dbError });
     return false;
   }
   return true;
@@ -56,34 +93,15 @@ function checkFirebase(res: any) {
 // CONTACT SUBMISSIONS
 // ----------------------------------------------------
 app.post("/api/contact", async (req, res) => {
-  if (!checkFirebase(res)) return;
+  if (!checkDB(res)) return;
   try {
     const { name, email, subject, message } = req.body;
     if (!name || !email || !message) {
       return res.status(400).json({ success: false, message: "Name, email, and message are required." });
     }
 
-    const submission = {
-      name,
-      email,
-      subject: subject || "No Subject",
-      message,
-      submittedAt: new Date().toISOString(),
-    };
-
-    const db = admin.firestore();
-    await db.collection("contact_submissions").add(submission);
-
-    const notification = {
-      type: "contact",
-      name,
-      email,
-      subject: subject || "No Subject",
-      message,
-      read: false,
-      createdAt: new Date().toISOString(),
-    };
-    await db.collection("notifications").add(notification);
+    await ContactSubmission.create({ name, email, subject, message });
+    await Notification.create({ type: "contact", name, email, subject, message });
 
     res.status(200).json({
       success: true,
@@ -99,7 +117,7 @@ app.post("/api/contact", async (req, res) => {
 // ADMIN AUTH
 // ----------------------------------------------------
 app.post("/api/admin/login", (req, res) => {
-  if (!checkFirebase(res)) return;
+  if (!checkDB(res)) return;
   const { password } = req.body;
   if (password === ADMIN_PASSWORD) {
     res.json({ success: true, message: "Admin access granted" });
@@ -112,38 +130,44 @@ app.post("/api/admin/login", (req, res) => {
 // GALLERY API
 // ----------------------------------------------------
 app.get("/api/gallery", async (_req, res) => {
-  if (!checkFirebase(res)) return;
+  if (!checkDB(res)) return;
   try {
-    const db = admin.firestore();
-    const snapshot = await db.collection("gallery").orderBy("uploadedAt", "desc").get();
-    const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    res.json({ success: true, items });
+    // Return id instead of _id for frontend compatibility
+    const items = await GalleryItem.find().sort({ uploadedAt: -1 }).lean();
+    const formattedItems = items.map((item: any) => ({
+      id: item._id.toString(),
+      title: item.title,
+      description: item.description,
+      category: item.category,
+      image: item.image,
+      uploadedAt: item.uploadedAt
+    }));
+    res.json({ success: true, items: formattedItems });
   } catch (err: any) {
     res.status(500).json({ success: false, message: "Failed to fetch gallery: " + err.message });
   }
 });
 
 app.post("/api/admin/gallery", requireAdminPassword, async (req: any, res: any) => {
-  if (!checkFirebase(res)) return;
+  if (!checkDB(res)) return;
   try {
-    let imageUrl = req.body.imageUrl;
+    const imageUrl = req.body.imageUrl;
     
     if (!imageUrl) {
       return res.status(400).json({ success: false, message: "No media URL provided" });
     }
 
-    const newItem = {
+    const doc = await GalleryItem.create({
       title: req.body.title || "Untitled",
       description: req.body.description || "",
       category: req.body.category || "General",
       image: imageUrl,
-      uploadedAt: new Date().toISOString(),
-    };
+    });
 
-    const db = admin.firestore();
-    const docRef = await db.collection("gallery").add(newItem);
-
-    res.json({ success: true, item: { id: docRef.id, ...newItem } });
+    res.json({ 
+      success: true, 
+      item: { id: doc._id.toString(), title: doc.title, description: doc.description, category: doc.category, image: doc.image, uploadedAt: doc.uploadedAt } 
+    });
   } catch (err: any) {
     console.error("Gallery upload failed:", err);
     res.status(500).json({ success: false, message: "Upload failed: " + err.message });
@@ -151,13 +175,10 @@ app.post("/api/admin/gallery", requireAdminPassword, async (req: any, res: any) 
 });
 
 app.put("/api/admin/gallery/:id", requireAdminPassword, async (req: any, res: any) => {
-  if (!checkFirebase(res)) return;
+  if (!checkDB(res)) return;
   try {
-    const db = admin.firestore();
     const { title, description, category } = req.body;
-    await db.collection("gallery").doc(req.params.id).update({
-      title, description, category
-    });
+    await GalleryItem.findByIdAndUpdate(req.params.id, { title, description, category });
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ success: false, message: "Failed to update: " + err.message });
@@ -165,26 +186,9 @@ app.put("/api/admin/gallery/:id", requireAdminPassword, async (req: any, res: an
 });
 
 app.delete("/api/admin/gallery/:id", requireAdminPassword, async (req: any, res: any) => {
-  if (!checkFirebase(res)) return;
+  if (!checkDB(res)) return;
   try {
-    const db = admin.firestore();
-    const docRef = db.collection("gallery").doc(req.params.id);
-    const doc = await docRef.get();
-    if (doc.exists) {
-      const data = doc.data();
-      if (data?.image && data.image.includes('storage.googleapis.com')) {
-        try {
-          const bucket = admin.storage().bucket();
-          const urlObj = new URL(data.image);
-          const filePath = decodeURIComponent(urlObj.pathname.replace(`/${bucket.name}/`, ''));
-          const file = bucket.file(filePath);
-          await file.delete().catch(() => console.log("File not found in storage, ignoring."));
-        } catch (e) {
-          console.log("Bucket delete skipped for external/legacy URL");
-        }
-      }
-      await docRef.delete();
-    }
+    await GalleryItem.findByIdAndDelete(req.params.id);
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ success: false, message: "Failed to delete: " + err.message });
@@ -195,22 +199,29 @@ app.delete("/api/admin/gallery/:id", requireAdminPassword, async (req: any, res:
 // NOTIFICATIONS API
 // ----------------------------------------------------
 app.get("/api/admin/notifications", requireAdminPassword, async (req, res) => {
-  if (!checkFirebase(res)) return;
+  if (!checkDB(res)) return;
   try {
-    const db = admin.firestore();
-    const snapshot = await db.collection("notifications").orderBy("createdAt", "desc").get();
-    const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    res.json({ success: true, notifications });
+    const notifications = await Notification.find().sort({ createdAt: -1 }).lean();
+    const formattedNotifs = notifications.map((n: any) => ({
+      id: n._id.toString(),
+      type: n.type,
+      name: n.name,
+      email: n.email,
+      subject: n.subject,
+      message: n.message,
+      read: n.read,
+      createdAt: n.createdAt
+    }));
+    res.json({ success: true, notifications: formattedNotifs });
   } catch (err: any) {
     res.status(500).json({ success: false, message: "Failed to fetch notifications: " + err.message });
   }
 });
 
 app.put("/api/admin/notifications/:id/read", requireAdminPassword, async (req: any, res: any) => {
-  if (!checkFirebase(res)) return;
+  if (!checkDB(res)) return;
   try {
-    const db = admin.firestore();
-    await db.collection("notifications").doc(req.params.id).update({ read: true });
+    await Notification.findByIdAndUpdate(req.params.id, { read: true });
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ success: false, message: "Failed to mark as read: " + err.message });

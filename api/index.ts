@@ -124,7 +124,6 @@ app.post("/api/contact", async (req, res) => {
 // ADMIN AUTH
 // ----------------------------------------------------
 app.post("/api/admin/login", (req, res) => {
-  if (!checkDB(res)) return;
   const { password } = req.body;
   if (password === ADMIN_PASSWORD) {
     res.json({ success: true, message: "Admin access granted" });

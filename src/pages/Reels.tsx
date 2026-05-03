@@ -5,17 +5,6 @@ import { Instagram, Linkedin, ExternalLink, Heart, MessageCircle, Send, Bookmark
 const INSTAGRAM_URL = "https://www.instagram.com/live_in_travel_zone_";
 const LINKEDIN_URL = "https://www.linkedin.com/in/vaibhav-goyal-1b8a101ba";
 
-function ElfsightWidget() {
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = "https://elfsightcdn.com/platform.js";
-    script.async = true;
-    document.body.appendChild(script);
-  }, []);
-
-  return <div className="elfsight-app-e36fee7a-316e-4cc3-854d-bf4cd2873bf5" data-elfsight-app-lazy></div>;
-}
-
 const TRAVEL_REELS = [
   {
     id: "reel-1",
@@ -294,7 +283,7 @@ export default function Reels() {
 
         <div className="glass-card border-brand-accent/20 p-6 rounded-2xl">
           <div className="w-full bg-black/20 rounded-xl overflow-hidden min-h-[500px]">
-            <ElfsightWidget />
+            <div className="elfsight-app-e36fee7a-316e-4cc3-854d-bf4cd2873bf5" data-elfsight-app-lazy></div>
           </div>
           <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer"
             className="flex items-center justify-center gap-2 mt-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white text-sm font-bold hover:scale-[1.02] transition-transform">
@@ -317,7 +306,10 @@ export default function Reels() {
           </div>
 
           {/* Phone-style reels player */}
-          <div className="w-full max-w-[380px] mx-auto h-[75vh] snap-y snap-mandatory overflow-y-scroll rounded-3xl hide-scrollbar bg-black border-2 border-white/10 relative shadow-[0_0_80px_rgba(108,99,255,0.15)]">
+          <div 
+            data-lenis-prevent="true"
+            className="w-full max-w-[380px] mx-auto h-[75vh] snap-y snap-mandatory overflow-y-scroll rounded-3xl hide-scrollbar bg-black border-2 border-white/10 relative shadow-[0_0_80px_rgba(108,99,255,0.15)] overscroll-contain"
+          >
             <div className="sticky top-0 z-40 flex justify-center pt-2 pointer-events-none">
               <div className="w-28 h-1 rounded-full bg-white/20" />
             </div>

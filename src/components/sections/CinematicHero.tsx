@@ -54,13 +54,13 @@ export default function CinematicHero() {
       {/* Content */}
       <motion.div 
         style={{ opacity }}
-        className="relative z-20 flex flex-col items-center text-center max-w-4xl px-6"
+        className="relative z-20 flex flex-col items-center text-center max-w-4xl px-6 pb-24"
       >
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-6"
         >
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <span className="text-xs font-mono uppercase tracking-widest text-brand-muted">Travel Operations & AI Integration</span>
@@ -82,7 +82,7 @@ export default function CinematicHero() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="text-lg md:text-xl text-brand-muted max-w-2xl font-sans mb-12"
+          className="text-lg md:text-xl text-brand-muted max-w-2xl font-sans mb-8"
         >
           {profile.about.split('.')[0]}. Built for travel stories, collaborations, and authentic discovery.
         </motion.p>

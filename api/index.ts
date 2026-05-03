@@ -1,9 +1,16 @@
 import express from "express";
 import multer from "multer";
 import mongoose from "mongoose";
+import { v2 as cloudinary } from "cloudinary";
 import * as dotenv from "dotenv";
 
 dotenv.config();
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const app = express();
 app.use(express.json());
@@ -192,6 +199,25 @@ app.delete("/api/admin/gallery/:id", requireAdminPassword, async (req: any, res:
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ success: false, message: "Failed to delete: " + err.message });
+  }
+});
+
+// ----------------------------------------------------
+// CLOUDINARY SIGNATURE API
+// ----------------------------------------------------
+app.get("/api/admin/cloudinary-signature", requireAdminPassword, (req, res) => {
+  try {
+    const timestamp = Math.round(new Date().getTime() / 1000);
+    // Cloudinary requires a signature of the parameters being passed.
+    // For direct uploads, we usually just need a timestamp.
+    const signature = cloudinary.utils.api_sign_request(
+      { timestamp },
+      process.env.CLOUDINARY_API_SECRET!
+    );
+
+    res.json({ success: true, timestamp, signature, apiKey: process.env.CLOUDINARY_API_KEY });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: "Failed to generate signature: " + err.message });
   }
 });
 

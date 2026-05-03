@@ -149,13 +149,33 @@ const UploadSection: React.FC<{
   password: string;
   onUploaded: () => void;
 }> = ({ password, onUploaded }) => {
-  const [mediaUrl, setMediaUrl] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+
+  const handleFile = (f: File) => {
+    if (!f.type.startsWith('image/') && !f.type.startsWith('video/')) {
+      setError('Only images and videos are supported.');
+      return;
+    }
+    setFile(f);
+    setError('');
+    
+    // Create preview
+    if (f.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => setFilePreview(e.target?.result as string);
+      reader.readAsDataURL(f);
+    } else {
+      setFilePreview(null); // Video preview can be handled differently or just show an icon
+    }
+  };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -166,11 +186,36 @@ const UploadSection: React.FC<{
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!mediaUrl || !title) return;
+    if (!file || !title) return;
     setLoading(true);
     setError('');
     setSuccess('');
+
     try {
+      // 1. Get Secure Upload Signature from Backend
+      const sigRes = await fetch('/api/admin/cloudinary-signature', {
+        headers: { 'x-admin-password': password }
+      });
+      if (!sigRes.ok) throw new Error("Failed to authenticate upload");
+      const { timestamp, signature, apiKey } = await sigRes.json();
+
+      // 2. Upload Directly to Cloudinary (bypasses Vercel 4.5MB limit)
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('api_key', apiKey);
+      formData.append('timestamp', timestamp);
+      formData.append('signature', signature);
+
+      const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/dn5cfvdld/auto/upload`, {
+        method: 'POST',
+        body: formData
+      });
+      const uploadData = await uploadRes.json();
+      
+      if (!uploadRes.ok) throw new Error(uploadData.error?.message || "Cloudinary upload failed");
+      const mediaUrl = uploadData.secure_url;
+
+      // 3. Save the resulting URL to our MongoDB Database
       const res = await fetch('/api/admin/gallery', {
         method: 'POST',
         headers: { 
@@ -184,9 +229,11 @@ const UploadSection: React.FC<{
           category
         }),
       });
+
       if (res.ok) {
         setSuccess('Media added successfully!');
-        setMediaUrl('');
+        setFile(null);
+        setFilePreview(null);
         setTitle('');
         setDescription('');
         setCategory(CATEGORIES[0]);
@@ -194,10 +241,10 @@ const UploadSection: React.FC<{
         setTimeout(() => setSuccess(''), 3000);
       } else {
         const data = await res.json().catch(() => ({}));
-        setError(data.message || 'Upload failed');
+        setError(data.message || 'Database save failed');
       }
-    } catch {
-      setError('Network error. Please try again.');
+    } catch (err: any) {
+      setError(err.message || 'Network error. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -229,16 +276,48 @@ const UploadSection: React.FC<{
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label className="text-[10px] font-mono text-brand-muted uppercase tracking-widest block mb-2">
-            Media URL (Image or Video Link) *
+            Media File (JPG, PNG, MP4) *
           </label>
-          <input
-            type="url"
-            value={mediaUrl}
-            onChange={(e) => setMediaUrl(e.target.value)}
-            className={INPUT_CLS}
-            placeholder="https://example.com/image.jpg or https://youtube.com/..."
-            required
-          />
+          <div
+            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={handleDrop}
+            className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
+              isDragging ? 'border-brand-accent bg-brand-accent/5' : 'border-white/10 hover:border-white/20 bg-white/5'
+            }`}
+          >
+            <input
+              type="file"
+              accept="image/*,video/mp4"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleFile(f);
+              }}
+              className="hidden"
+              id="file-upload"
+            />
+            <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center">
+              {filePreview ? (
+                <div className="w-full max-w-[200px] aspect-video rounded-lg overflow-hidden border border-white/10 mb-3">
+                  <img src={filePreview} alt="Preview" className="w-full h-full object-cover" />
+                </div>
+              ) : file?.type.startsWith('video/') ? (
+                <div className="w-16 h-16 rounded-full bg-brand-accent/20 flex items-center justify-center mb-3">
+                  <Upload className="w-8 h-8 text-brand-accent" />
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-3">
+                  <Upload className="w-8 h-8 text-brand-muted" />
+                </div>
+              )}
+              <span className="text-white font-bold text-sm mb-1">
+                {file ? file.name : "Click to browse or drag file here"}
+              </span>
+              <span className="text-brand-muted text-xs">
+                Supports Images and MP4 Videos (No size limits)
+              </span>
+            </label>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -287,7 +366,7 @@ const UploadSection: React.FC<{
 
         <button
           type="submit"
-          disabled={loading || !mediaUrl || !title}
+          disabled={loading || !file || !title}
           className="w-full py-3 bg-white text-black rounded-xl font-bold text-sm hover:bg-brand-accent hover:text-white transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (

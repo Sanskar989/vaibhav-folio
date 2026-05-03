@@ -1,9 +1,11 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'motion/react';
 import { ArrowRight, Plane, MapPin } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useDataStore } from '../../store/useDataStore';
 
 export default function CinematicHero() {
+  const navigate = useNavigate();
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 1000], [0, 200]);
   const y2 = useTransform(scrollY, [0, 1000], [0, -100]);
@@ -91,10 +93,16 @@ export default function CinematicHero() {
           transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
           className="flex flex-col sm:flex-row items-center gap-4"
         >
-          <button className="px-8 py-4 bg-white text-black font-bold rounded-full hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_40px_rgba(255,255,255,0.2)]">
+          <button 
+            onClick={() => navigate('/gallery')}
+            className="px-8 py-4 bg-white text-black font-bold rounded-full hover:scale-105 transition-transform flex items-center gap-2 shadow-[0_0_40px_rgba(255,255,255,0.2)]"
+          >
             Explore My Work <ArrowRight className="w-5 h-5" />
           </button>
-          <button className="px-8 py-4 bg-white/5 border border-white/10 text-white font-bold rounded-full hover:bg-white/10 transition-colors backdrop-blur-md">
+          <button 
+            onClick={() => navigate('/media-kit')}
+            className="px-8 py-4 bg-white/5 border border-white/10 text-white font-bold rounded-full hover:bg-white/10 transition-colors backdrop-blur-md"
+          >
             View Media Kit
           </button>
         </motion.div>

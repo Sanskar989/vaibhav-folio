@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Shield, Plane } from 'lucide-react';
 import { useAdminStore } from '../../store/useAdminStore';
 import { useDataStore } from '../../store/useDataStore';
@@ -9,6 +9,7 @@ export default function PremiumNavbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const { isAdminUnlocked } = useAdminStore();
   const { data } = useDataStore();
 
@@ -20,11 +21,12 @@ export default function PremiumNavbar() {
 
   const links = [
     { label: 'Home', path: '/' },
+    { label: 'About', path: '/about' },
     { label: 'Resume', path: '/resume' },
     { label: 'Gallery', path: '/gallery' },
     { label: 'Reels', path: '/reels' },
     { label: 'Achievements', path: '/testimonials' },
-    { label: 'Collaborations', path: '/collaborations' },
+    { label: 'Experience', path: '/experience' },
     { label: 'Contact', path: '/contact' },
   ];
 
@@ -63,7 +65,10 @@ export default function PremiumNavbar() {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="hidden md:flex bg-white text-brand-bg px-6 py-2.5 rounded-full font-bold text-sm hover:bg-brand-accent hover:text-white transition-all shadow-lg shadow-white/5 hover:shadow-brand-accent/20">
+            <button 
+              onClick={() => navigate('/contact')}
+              className="hidden md:flex bg-white text-brand-bg px-6 py-2.5 rounded-full font-bold text-sm hover:bg-brand-accent hover:text-white transition-all shadow-lg shadow-white/5 hover:shadow-brand-accent/20"
+            >
               Hire Me
             </button>
             <button 
@@ -95,7 +100,13 @@ export default function PremiumNavbar() {
                 {link.label}
               </Link>
             ))}
-            <button className="mt-8 bg-brand-accent text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg shadow-brand-accent/30">
+            <button 
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                navigate('/contact');
+              }}
+              className="mt-8 bg-brand-accent text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg shadow-brand-accent/30"
+            >
               Work With Me
             </button>
           </motion.div>

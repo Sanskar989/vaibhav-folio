@@ -12,6 +12,7 @@ import BackgroundMusic from './components/layout/BackgroundMusic';
 
 // Pages
 import Home from './pages/Home';
+import AboutMe from './pages/AboutMe';
 import MediaKit from './pages/MediaKit';
 import Contact from './pages/Contact';
 import Collaborations from './pages/Collaborations';
@@ -39,9 +40,10 @@ export default function App() {
         <AnimatePresence mode="wait">
           <Routes location={location}>
             <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+            <Route path="/about" element={<PageTransition><AboutMe /></PageTransition>} />
             <Route path="/media-kit" element={<PageTransition><MediaKit /></PageTransition>} />
             <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
-            <Route path="/collaborations" element={<PageTransition><Collaborations /></PageTransition>} />
+            <Route path="/experience" element={<PageTransition><Collaborations /></PageTransition>} />
             <Route path="/travel-map" element={<PageTransition><TravelMap /></PageTransition>} />
             <Route path="/reels" element={<PageTransition><Reels /></PageTransition>} />
             <Route path="/testimonials" element={<PageTransition><Testimonials /></PageTransition>} />

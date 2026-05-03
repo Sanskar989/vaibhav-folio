@@ -1,6 +1,6 @@
 import express from "express";
 import multer from "multer";
-import * as admin from "firebase-admin";
+import admin from "firebase-admin";
 
 const app = express();
 app.use(express.json());

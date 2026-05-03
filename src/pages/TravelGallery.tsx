@@ -244,7 +244,7 @@ const GALLERY_ITEMS: GalleryItem[] = [
     location: 'Dal Lake, Srinagar',
     date: '2023-04-14',
     image:
-      'https://images.unsplash.com/photo-1609766857041-ed402ea8069a?q=80&w=1200&auto=format&fit=crop',
+      'https://www.w3schools.com/html/mov_bbb.mp4',
     category: 'Kashmir',
     size: 'square',
     isVideo: true,
@@ -257,7 +257,7 @@ const GALLERY_ITEMS: GalleryItem[] = [
     location: 'Bir Billing, Himachal Pradesh',
     date: '2023-10-12',
     image:
-      'https://images.unsplash.com/photo-1503220317375-aaad61436b1b?q=80&w=1200&auto=format&fit=crop',
+      'https://cdn.pixabay.com/video/2016/08/22/4741-180735749_tiny.mp4',
     category: 'Adventure',
     size: 'wide',
     isVideo: true,
@@ -475,19 +475,23 @@ function Lightbox({
         className="relative max-w-6xl w-full max-h-[90vh] glass-card overflow-hidden grid grid-cols-1 lg:grid-cols-[1fr_380px]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Image */}
-        <div className="relative w-full h-[50vh] lg:h-auto overflow-hidden bg-black">
-          <img
-            src={item.image}
-            alt={item.title}
-            className="w-full h-full object-cover"
-          />
-          {item.isVideo && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-20 h-20 rounded-full bg-brand-accent/90 flex items-center justify-center shadow-lg shadow-brand-accent/40">
-                <Play className="w-8 h-8 text-white ml-1" fill="white" />
-              </div>
-            </div>
+        {/* Image / Video */}
+        <div className="relative w-full h-[50vh] lg:h-auto overflow-hidden bg-black flex items-center justify-center">
+          {item.isVideo ? (
+            <video
+              src={item.image}
+              controls
+              autoPlay
+              loop
+              playsInline
+              className="w-full h-full object-contain"
+            />
+          ) : (
+            <img
+              src={item.image}
+              alt={item.title}
+              className="w-full h-full object-contain"
+            />
           )}
         </div>
 
@@ -577,14 +581,27 @@ const GalleryCard: React.FC<{
       className={`group relative overflow-hidden rounded-2xl cursor-pointer ${sizeClasses[item.size]} min-h-[280px]`}
       onClick={onClick}
     >
-      {/* Image */}
-      <motion.img
-        src={item.image}
-        alt={item.title}
-        className="w-full h-full object-cover absolute inset-0"
-        whileHover={{ scale: 1.08 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      />
+      {/* Image / Video */}
+      {item.isVideo ? (
+        <motion.video
+          src={item.image}
+          className="w-full h-full object-cover absolute inset-0"
+          muted
+          loop
+          playsInline
+          autoPlay
+          whileHover={{ scale: 1.08 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        />
+      ) : (
+        <motion.img
+          src={item.image}
+          alt={item.title}
+          className="w-full h-full object-cover absolute inset-0"
+          whileHover={{ scale: 1.08 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        />
+      )}
 
       {/* Hover overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -634,16 +651,24 @@ export default function TravelGallery() {
       .then(r => r.json())
       .then(data => {
         if (data.success && data.items) {
-          const mapped: GalleryItem[] = data.items.map((item: any) => ({
-            id: item.id,
-            title: item.title || 'Untitled',
-            description: item.description || '',
-            location: item.category || 'India',
-            date: item.uploadedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
-            image: item.image,
-            category: item.category || 'General',
-            size: 'square' as const,
-          }));
+          const mapped: GalleryItem[] = data.items.map((item: any) => {
+            const imgUrl = item.image || '';
+            const isVideoFile = imgUrl.toLowerCase().includes('.mp4') || 
+                                imgUrl.toLowerCase().includes('.webm') || 
+                                imgUrl.toLowerCase().includes('.mov') ||
+                                imgUrl.toLowerCase().includes('.m3u8');
+            return {
+              id: item.id,
+              title: item.title || 'Untitled',
+              description: item.description || '',
+              location: item.category || 'India',
+              date: item.uploadedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+              image: imgUrl,
+              category: item.category || 'General',
+              size: 'square' as const,
+              isVideo: isVideoFile || item.isVideo,
+            };
+          });
           setUploadedItems(mapped);
         }
       })

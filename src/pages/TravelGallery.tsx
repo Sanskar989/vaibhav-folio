@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Link } from 'react-router-dom';
 import {
   Camera,
   MapPin,
@@ -12,6 +13,7 @@ import {
   Mountain,
   Compass,
   Sparkles,
+  Settings,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -825,6 +827,15 @@ export default function TravelGallery() {
           />
         )}
       </AnimatePresence>
+
+      {/* Floating Admin Button */}
+      <Link
+        to="/admin"
+        className="fixed bottom-8 right-8 z-[100] w-14 h-14 rounded-full bg-brand-bg/90 backdrop-blur-xl border border-white/10 hover:border-brand-accent/50 flex items-center justify-center text-brand-muted hover:text-brand-accent transition-all duration-300 shadow-xl shadow-black/30 hover:shadow-brand-accent/20 group"
+        title="Admin Panel — Manage Gallery"
+      >
+        <Settings className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" />
+      </Link>
     </div>
   );
 }

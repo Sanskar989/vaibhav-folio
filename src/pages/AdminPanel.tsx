@@ -149,23 +149,13 @@ const UploadSection: React.FC<{
   password: string;
   onUploaded: () => void;
 }> = ({ password, onUploaded }) => {
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [mediaUrl, setMediaUrl] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFile = (f: File) => {
-    setFile(f);
-    const reader = new FileReader();
-    reader.onload = () => setPreview(reader.result as string);
-    reader.readAsDataURL(f);
-  };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -176,26 +166,27 @@ const UploadSection: React.FC<{
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !title) return;
+    if (!mediaUrl || !title) return;
     setLoading(true);
     setError('');
     setSuccess('');
     try {
-      const fd = new FormData();
-      fd.append('image', file);
-      fd.append('title', title);
-      fd.append('description', description);
-      fd.append('category', category);
-
       const res = await fetch('/api/admin/gallery', {
         method: 'POST',
-        headers: { 'x-admin-password': password },
-        body: fd,
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-password': password 
+        },
+        body: JSON.stringify({
+          imageUrl: mediaUrl,
+          title,
+          description,
+          category
+        }),
       });
       if (res.ok) {
-        setSuccess('Image uploaded successfully!');
-        setFile(null);
-        setPreview(null);
+        setSuccess('Media added successfully!');
+        setMediaUrl('');
         setTitle('');
         setDescription('');
         setCategory(CATEGORIES[0]);
@@ -236,67 +227,18 @@ const UploadSection: React.FC<{
       )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Drop zone */}
-        <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDragging(true);
-          }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-          className={`relative border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
-            isDragging
-              ? 'border-brand-accent bg-brand-accent/5'
-              : 'border-white/20 hover:border-white/40'
-          }`}
-        >
+        <div>
+          <label className="text-[10px] font-mono text-brand-muted uppercase tracking-widest block mb-2">
+            Media URL (Image or Video Link) *
+          </label>
           <input
-            ref={fileInputRef}
-            type="file"
-            accept=".jpg,.jpeg,.png,.mp4"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleFile(f);
-            }}
+            type="url"
+            value={mediaUrl}
+            onChange={(e) => setMediaUrl(e.target.value)}
+            className={INPUT_CLS}
+            placeholder="https://example.com/image.jpg or https://youtube.com/..."
+            required
           />
-          {preview ? (
-            <div className="flex flex-col items-center gap-3">
-              {file?.type.startsWith('video/') ? (
-                <video
-                  src={preview}
-                  controls
-                  className="w-40 h-40 object-cover rounded-xl"
-                />
-              ) : (
-                <img
-                  src={preview}
-                  alt="Preview"
-                  className="w-40 h-40 object-cover rounded-xl"
-                />
-              )}
-              <span className="text-brand-muted text-xs font-mono">{file?.name}</span>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setFile(null);
-                  setPreview(null);
-                }}
-                className="text-red-400 text-xs hover:text-red-300 transition-colors"
-              >
-                Remove
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-3">
-              <Image className="w-10 h-10 text-brand-muted" />
-              <p className="text-brand-muted text-sm">
-                Drag & drop a photo (JPG/PNG) or video (MP4) here
-              </p>
-            </div>
-          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -345,7 +287,7 @@ const UploadSection: React.FC<{
 
         <button
           type="submit"
-          disabled={loading || !file || !title}
+          disabled={loading || !mediaUrl || !title}
           className="w-full py-3 bg-white text-black rounded-xl font-bold text-sm hover:bg-brand-accent hover:text-white transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (

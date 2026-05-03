@@ -117,23 +117,14 @@ app.get("/api/gallery", async (_req, res) => {
   }
 });
 
-app.post("/api/admin/gallery", requireAdminPassword, upload.single("image"), async (req: any, res: any) => {
+app.post("/api/admin/gallery", requireAdminPassword, async (req: any, res: any) => {
   if (!checkFirebase(res)) return;
   try {
-    if (!req.file) return res.status(400).json({ success: false, message: "No image uploaded" });
-
-    const fileBuffer = req.file.buffer;
-    const originalName = req.file.originalname;
-    const uniqueName = `uploads/${Date.now()}-${Math.round(Math.random() * 1e6)}-${originalName}`;
-    const bucket = admin.storage().bucket();
-    const file = bucket.file(uniqueName);
-
-    await file.save(fileBuffer, {
-      metadata: { contentType: req.file.mimetype },
-      public: true, // Make publicly readable
-    });
-
-    const imageUrl = `https://storage.googleapis.com/${bucket.name}/${uniqueName}`;
+    let imageUrl = req.body.imageUrl;
+    
+    if (!imageUrl) {
+      return res.status(400).json({ success: false, message: "No media URL provided" });
+    }
 
     const newItem = {
       title: req.body.title || "Untitled",
@@ -175,12 +166,16 @@ app.delete("/api/admin/gallery/:id", requireAdminPassword, async (req: any, res:
     const doc = await docRef.get();
     if (doc.exists) {
       const data = doc.data();
-      if (data?.image) {
-        const bucket = admin.storage().bucket();
-        const urlObj = new URL(data.image);
-        const filePath = decodeURIComponent(urlObj.pathname.replace(`/${bucket.name}/`, ''));
-        const file = bucket.file(filePath);
-        await file.delete().catch(() => console.log("File not found in storage, ignoring."));
+      if (data?.image && data.image.includes('storage.googleapis.com')) {
+        try {
+          const bucket = admin.storage().bucket();
+          const urlObj = new URL(data.image);
+          const filePath = decodeURIComponent(urlObj.pathname.replace(`/${bucket.name}/`, ''));
+          const file = bucket.file(filePath);
+          await file.delete().catch(() => console.log("File not found in storage, ignoring."));
+        } catch (e) {
+          console.log("Bucket delete skipped for external/legacy URL");
+        }
       }
       await docRef.delete();
     }

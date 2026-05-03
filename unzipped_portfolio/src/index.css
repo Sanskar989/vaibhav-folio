@@ -1,0 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Syne", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  
+  --color-brand-bg: #09090f;
+  --color-brand-bg-soft: #0f1018;
+  --color-brand-accent: #6C63FF;
+  --color-brand-accent-glow: rgba(108, 99, 255, 0.5);
+  --color-brand-muted: #718096;
+}
+
+@layer base {
+  body {
+    @apply bg-brand-bg text-slate-300 font-sans selection:bg-brand-accent/30 tracking-tight leading-relaxed;
+  }
+  
+  h1, h2, h3, h4 {
+    @apply font-display text-white tracking-tight;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl transition-all duration-300;
+  }
+
+  .glass-nav {
+    @apply bg-brand-bg/85 backdrop-blur-md border-b border-white/5;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-brand-accent;
+  }
+
+  .section-tag {
+    @apply font-mono text-[0.65rem] text-brand-accent uppercase tracking-[0.2em] mb-3 flex items-center gap-2;
+  }
+
+  .window-chrome {
+    @apply bg-white/[0.02] border border-white/10 rounded-3xl overflow-hidden;
+  }
+
+  .window-bar {
+    @apply bg-white/[0.03] px-4 py-3 flex items-center gap-3 border-b border-white/5;
+  }
+
+  .timeline-dot {
+    @apply absolute -left-1 top-2 w-2 h-2 rounded-full bg-brand-accent shadow-[0_0_12px_rgba(108,99,255,0.5)] border-2 border-brand-bg;
+  }
+}
+
+.mesh-blob {
+  @apply fixed -z-10 rounded-full blur-[120px] opacity-15 pointer-events-none;
+}

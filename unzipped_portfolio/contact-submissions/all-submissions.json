@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Test User",
+    "email": "test@test.com",
+    "subject": "Test",
+    "message": "Hello",
+    "submittedAt": "2026-05-03T08:35:05.386Z"
+  },
+  {
+    "name": "Test Brand",
+    "email": "brand@test.com",
+    "subject": "Collaboration",
+    "message": "We want to work with you!",
+    "submittedAt": "2026-05-03T10:28:58.619Z"
+  },
+  {
+    "name": "qwertyhuj",
+    "email": "sanskargoyal00@gmail.com",
+    "subject": "dfghjkl",
+    "message": "sdfghjkl",
+    "submittedAt": "2026-05-03T10:32:33.361Z"
+  }
+]

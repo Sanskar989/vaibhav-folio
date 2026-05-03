@@ -1,0 +1,22 @@
+[
+  {
+    "id": "notif-1777804353440",
+    "type": "contact",
+    "name": "qwertyhuj",
+    "email": "sanskargoyal00@gmail.com",
+    "subject": "dfghjkl",
+    "message": "sdfghjkl",
+    "read": false,
+    "createdAt": "2026-05-03T10:32:33.440Z"
+  },
+  {
+    "id": "notif-1777804138627",
+    "type": "contact",
+    "name": "Test Brand",
+    "email": "brand@test.com",
+    "subject": "Collaboration",
+    "message": "We want to work with you!",
+    "read": false,
+    "createdAt": "2026-05-03T10:28:58.627Z"
+  }
+]

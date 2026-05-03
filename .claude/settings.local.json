@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(jobs -l)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5000)",
+      "Bash(open *)",
+      "Bash(npx tsc *)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(lsof *)",
+      "Bash(curl -s --max-time 5 -o /dev/null -w \"%{http_code}\" http://127.0.0.1:3000)",
+      "Bash(kill -9 4945 4926 4948 4920)",
+      "Read(//tmp/**)",
+      "Bash(curl *)",
+      "Bash(pkill -f \"tsx server\")",
+      "Read(//private/tmp/**)",
+      "Bash(npx tsx *)",
+      "Bash(node -e ' *)",
+      "Bash(echo \"PID=$!\")",
+      "Bash(lsof -i :3000)",
+      "Bash(node --import tsx/esm server.ts)",
+      "Bash(node -e \"import\\('firebase-admin'\\).then\\(\\(\\) => console.log\\('firebase-admin OK'\\)\\).catch\\(e => console.log\\('firebase-admin FAILED:', e.message\\)\\)\")",
+      "Bash(node -e \"console.log\\('node works'\\)\")",
+      "Bash(pkill -f \"tsx server.ts\")",
+      "Bash(pkill -f \"node.*server\")",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(npm --version)",
+      "Bash(node --experimental-strip-types server.ts)",
+      "Bash(node *)",
+      "Bash(echo 'console.log\\(\"tsx works\"\\)')",
+      "Bash(echo \"exit: $?\")",
+      "Bash(rm -rf node_modules)",
+      "Bash(echo \"rm exit: $?\")",
+      "Bash(convert -size 100x100 xc:red /tmp/test-upload.jpg)",
+      "Bash(python3 -c ' *)"
+    ]
+  }
+}

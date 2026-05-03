@@ -1,0 +1,162 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global safety net: Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && 
+             request.auth.uid == userId && 
+             request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      // Hardcoded admin email from environment and check for admin role in users collection
+      return isSignedIn() && 
+             request.auth.token.email_verified == true && (
+               request.auth.token.email == 'vaibhavgoyal026@gmail.com' ||
+               (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+                get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'user') == 'admin')
+             );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Entity Validation Helpers ---
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email']) &&
+             data.uid is string && data.uid == request.auth.uid &&
+             data.email is string && data.email == request.auth.token.email;
+    }
+
+    function isValidProject(data) {
+      return data.keys().hasAll(['title', 'description', 'order']) &&
+             data.title is string && data.title.size() <= 200 &&
+             data.description is string && data.description.size() <= 5000 &&
+             data.order is number;
+    }
+
+    function isValidExperience(data) {
+      return data.keys().hasAll(['role', 'company', 'order']) &&
+             data.role is string && data.role.size() <= 200 &&
+             data.company is string && data.company.size() <= 200 &&
+             data.order is number;
+    }
+
+    function isValidEducation(data) {
+      return data.keys().hasAll(['degree', 'institution', 'order']) &&
+             data.degree is string && data.degree.size() <= 200 &&
+             data.institution is string && data.institution.size() <= 200 &&
+             data.order is number;
+    }
+
+    function isValidSkill(data) {
+      return data.keys().hasAll(['name', 'category', 'order']) &&
+             data.name is string && data.name.size() <= 100 &&
+             data.category is string && data.category.size() <= 100 &&
+             data.order is number;
+    }
+
+    function isValidSocialPost(data) {
+      return data.keys().hasAll(['id', 'source', 'imageUrl']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.source in ['instagram', 'linkedin'] &&
+             data.imageUrl is string && data.imageUrl.size() <= 1000;
+    }
+
+    function isValidMessage(data) {
+      return data.keys().hasAll(['name', 'email', 'message']) &&
+             data.name is string && data.name.size() <= 200 &&
+             data.email is string && data.email.matches('^.+@.+$') &&
+             data.message is string && data.message.size() <= 5000;
+    }
+
+    // 1. Users collection
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && isValidUser(incoming()) && incoming().get('role', 'user') == 'user';
+      allow update: if (isOwner(userId) || isAdmin()) && (
+        !incoming().diff(existing()).affectedKeys().hasAny(['role']) || isAdmin()
+      );
+    }
+
+    // 2. Global Config (Portfolio Data)
+    match /config/main {
+      allow get: if true; // Publicly readable
+      allow write: if isAdmin();
+    }
+
+    // 3. Projects
+    match /projects/{projectId} {
+      allow get, list: if true;
+      allow create: if isAdmin() && isValidProject(incoming());
+      allow update: if isAdmin() && isValidProject(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // 4. Social Posts
+    match /social_posts/{postId} {
+      allow get, list: if true;
+      allow create: if isAdmin() && isValidSocialPost(incoming());
+      allow update: if isAdmin() && isValidSocialPost(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // 5. Experience
+    match /experience/{expId} {
+      allow get, list: if true;
+      allow create: if isAdmin() && isValidId(expId) && isValidExperience(incoming());
+      allow update: if isAdmin() && isValidExperience(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // 6. Education
+    match /education/{eduId} {
+      allow get, list: if true;
+      allow create: if isAdmin() && isValidId(eduId) && isValidEducation(incoming());
+      allow update: if isAdmin() && isValidEducation(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // 7. Skills
+    match /skills/{skillId} {
+      allow get, list: if true;
+      allow create: if isAdmin() && isValidId(skillId) && isValidSkill(incoming());
+      allow update: if isAdmin() && isValidSkill(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // 8. Certifications
+    match /certifications/{certId} {
+      allow get, list: if true;
+      allow write: if isAdmin();
+    }
+
+    // 9. Messages
+    match /messages/{messageId} {
+      allow create: if isValidMessage(incoming()) && 
+                    incoming().get('createdAt', request.time) == request.time;
+      allow read, delete: if isAdmin();
+    }
+  }
+}

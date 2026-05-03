@@ -192,23 +192,12 @@ const UploadSection: React.FC<{
     setSuccess('');
 
     try {
-      // 1. Get Secure Upload Signature from Backend
-      const sigRes = await fetch('/api/admin/cloudinary-signature', {
-        headers: { 'x-admin-password': password }
-      });
-      if (!sigRes.ok) throw new Error("Failed to authenticate upload");
-      const { timestamp, signature } = await sigRes.json();
-
-      // 2. Upload Directly to Cloudinary (bypasses Vercel 4.5MB limit)
-      // API Key is a public value (not secret), safe to include in frontend
-      const CLOUDINARY_API_KEY = '456881741798337';
+      // Upload Directly to Cloudinary using unsigned preset (no backend signature needed)
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('api_key', CLOUDINARY_API_KEY);
-      formData.append('timestamp', timestamp);
-      formData.append('signature', signature);
+      formData.append('upload_preset', 'vaibhav_portfolio');
 
-      const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/dn5cfvdld/auto/upload`, {
+      const uploadRes = await fetch('https://api.cloudinary.com/v1_1/dn5cfvdld/auto/upload', {
         method: 'POST',
         body: formData
       });

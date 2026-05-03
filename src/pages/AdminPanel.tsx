@@ -219,7 +219,7 @@ const UploadSection: React.FC<{
       className="glass-card p-6 md:p-8 border-brand-accent/20 mb-8"
     >
       <h3 className="font-display text-xl font-bold text-white mb-6 flex items-center gap-2">
-        <Upload className="w-5 h-5 text-brand-accent" /> Upload New Image
+        <Upload className="w-5 h-5 text-brand-accent" /> Upload Media (JPG, PNG, MP4)
       </h3>
 
       {success && (
@@ -254,7 +254,7 @@ const UploadSection: React.FC<{
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept=".jpg,.jpeg,.png,.mp4"
             className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];
@@ -263,11 +263,19 @@ const UploadSection: React.FC<{
           />
           {preview ? (
             <div className="flex flex-col items-center gap-3">
-              <img
-                src={preview}
-                alt="Preview"
-                className="w-40 h-40 object-cover rounded-xl"
-              />
+              {file?.type.startsWith('video/') ? (
+                <video
+                  src={preview}
+                  controls
+                  className="w-40 h-40 object-cover rounded-xl"
+                />
+              ) : (
+                <img
+                  src={preview}
+                  alt="Preview"
+                  className="w-40 h-40 object-cover rounded-xl"
+                />
+              )}
               <span className="text-brand-muted text-xs font-mono">{file?.name}</span>
               <button
                 type="button"
@@ -285,7 +293,7 @@ const UploadSection: React.FC<{
             <div className="flex flex-col items-center gap-3">
               <Image className="w-10 h-10 text-brand-muted" />
               <p className="text-brand-muted text-sm">
-                Drag & drop an image here, or click to browse
+                Drag & drop a photo (JPG/PNG) or video (MP4) here
               </p>
             </div>
           )}
@@ -346,7 +354,7 @@ const UploadSection: React.FC<{
             </>
           ) : (
             <>
-              <Upload className="w-4 h-4" /> Upload Image
+              <Upload className="w-4 h-4" /> Upload Media
             </>
           )}
         </button>

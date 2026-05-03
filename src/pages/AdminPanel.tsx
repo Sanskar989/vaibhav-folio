@@ -197,12 +197,14 @@ const UploadSection: React.FC<{
         headers: { 'x-admin-password': password }
       });
       if (!sigRes.ok) throw new Error("Failed to authenticate upload");
-      const { timestamp, signature, apiKey } = await sigRes.json();
+      const { timestamp, signature } = await sigRes.json();
 
       // 2. Upload Directly to Cloudinary (bypasses Vercel 4.5MB limit)
+      // API Key is a public value (not secret), safe to include in frontend
+      const CLOUDINARY_API_KEY = '456881741798337';
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('api_key', apiKey);
+      formData.append('api_key', CLOUDINARY_API_KEY);
       formData.append('timestamp', timestamp);
       formData.append('signature', signature);
 

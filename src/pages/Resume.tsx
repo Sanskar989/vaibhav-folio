@@ -81,7 +81,7 @@ export default function Resume() {
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-accent via-purple-400 to-brand-accent" />
             <div className="grid grid-cols-2 gap-4">
               {[
-                { label: 'Experience', value: '3+ Years', icon: Briefcase },
+                { label: 'Experience', value: '2+ Years', icon: Briefcase },
                 { label: 'Certifications', value: '14+', icon: Award },
                 { label: 'Education', value: 'MBA (Pursuing)', icon: GraduationCap },
                 { label: 'Projects', value: '4+', icon: Code },

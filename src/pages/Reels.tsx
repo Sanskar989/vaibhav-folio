@@ -383,7 +383,7 @@ export default function Reels() {
               {[
                 { label: 'Connections', value: '500+', icon: '🤝' },
                 { label: 'Certifications', value: '14+', icon: '🏅' },
-                { label: 'Experience', value: '3+ Yrs', icon: '💼' },
+                { label: 'Experience', value: '2+ Yrs', icon: '💼' },
                 { label: 'Endorsements', value: '50+', icon: '⭐' },
               ].map((stat) => (
                 <motion.div key={stat.label} whileHover={{ y: -4, scale: 1.02 }}

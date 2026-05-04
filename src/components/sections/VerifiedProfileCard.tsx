@@ -40,7 +40,7 @@ export default function VerifiedProfileCard() {
 
         <div className="grid grid-cols-2 w-full gap-4 mb-6">
           <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-center">
-            <div className="font-display font-bold text-white text-lg">3+</div>
+            <div className="font-display font-bold text-white text-lg">2+</div>
             <div className="text-[9px] font-mono text-brand-muted uppercase tracking-widest mt-1">Years Exp</div>
           </div>
           <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-center">

@@ -292,7 +292,7 @@ export default function Reels() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10">
+      <div className="grid grid-cols-1 gap-10">
         {/* Travel Stories Reels Player */}
         <div>
           <div className="flex items-center gap-3 mb-4">
@@ -305,7 +305,6 @@ export default function Reels() {
             </div>
           </div>
 
-          {/* Phone-style reels player */}
           <div 
             data-lenis-prevent="true"
             className="w-full max-w-[380px] mx-auto h-[75vh] snap-y snap-mandatory overflow-y-scroll rounded-3xl hide-scrollbar bg-black border-2 border-white/10 relative shadow-[0_0_80px_rgba(108,99,255,0.15)] overscroll-contain"
@@ -325,7 +324,6 @@ export default function Reels() {
             </motion.div>
           </div>
 
-          {/* Thumbnails */}
           <div className="flex gap-3 mt-6 overflow-x-auto hide-scrollbar pb-2 justify-center flex-wrap">
             {TRAVEL_REELS.map((reel) => (
               <div key={reel.id}
@@ -335,42 +333,170 @@ export default function Reels() {
             ))}
           </div>
         </div>
+      </div>
 
-        {/* Right sidebar: LinkedIn */}
-        <div className="space-y-8">
+      {/* ================================================================ */}
+      {/*  LINKEDIN SHOWCASE                                               */}
+      {/* ================================================================ */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.1 }}
+        transition={{ duration: 0.8 }}
+        className="mt-20"
+      >
+        <div className="flex items-center gap-3 mb-8">
+          <div className="p-3 rounded-2xl bg-[#0A66C2] shadow-lg shadow-[#0A66C2]/30">
+            <Linkedin className="w-6 h-6 text-white" />
+          </div>
           <div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-xl bg-[#0A66C2]">
-                <Linkedin className="w-5 h-5 text-white" />
-              </div>
-              <h2 className="font-display text-lg font-bold text-white">LinkedIn</h2>
-            </div>
+            <h2 className="font-display text-3xl md:text-4xl font-extrabold text-white">LinkedIn Presence</h2>
+            <p className="text-brand-muted text-[10px] font-mono uppercase tracking-widest">Professional network &amp; thought leadership</p>
+          </div>
+        </div>
 
-            <div className="glass-card p-6 border-brand-accent/20 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-[#0A66C2]" />
-              <div className="flex flex-col items-center text-center mb-4">
-                <div className="w-20 h-20 rounded-full border-4 border-[#0A66C2]/30 overflow-hidden mb-3">
-                  <img src="/vaibhav-photo.png" alt="Vaibhav Goyal" className="w-full h-full object-cover" />
-                </div>
-                <h3 className="font-display text-lg font-bold text-white">Vaibhav Goyal</h3>
-                <p className="text-brand-accent font-mono text-[9px] uppercase tracking-widest mt-1">Travel Operations & AI Specialist</p>
+        {/* Profile Card */}
+        <div className="glass-card border-[#0A66C2]/30 overflow-hidden relative">
+          <div className="h-48 md:h-56 relative overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=400&fit=crop" alt="Banner" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/90" />
+          </div>
+          <div className="px-6 md:px-10 pb-8 -mt-16 relative z-10">
+            <div className="flex flex-col md:flex-row md:items-end gap-6">
+              <div className="w-28 h-28 md:w-32 md:h-32 rounded-full border-4 border-[#0A66C2] overflow-hidden shadow-xl shadow-[#0A66C2]/20 flex-shrink-0">
+                <img src="/vaibhav-photo.png" alt="Vaibhav Goyal" className="w-full h-full object-cover" />
               </div>
-              <div className="space-y-2 mb-4">
-                {[['Focus', 'Travel Ops & AI'], ['Experience', 'Thrillophilia, Trip String'], ['Certs', '14+ Professional']].map(([label, value]) => (
-                  <div key={label} className="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/10">
-                    <span className="text-xs text-brand-muted">{label}</span>
-                    <span className="text-xs text-white font-medium">{value}</span>
-                  </div>
-                ))}
+              <div className="flex-1">
+                <h3 className="font-display text-2xl md:text-3xl font-extrabold text-white">Vaibhav Goyal</h3>
+                <p className="text-brand-accent text-sm font-medium mt-1">Travel Operations Manager | AI &amp; Automation Specialist | 14x Certified Professional</p>
+                <p className="text-brand-muted text-xs mt-2 flex items-center gap-2">
+                  <MapPin className="w-3 h-3" /> New Delhi, India · 500+ connections
+                </p>
               </div>
               <a href={LINKEDIN_URL} target="_blank" rel="noreferrer"
-                className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#0A66C2] text-white rounded-xl font-bold text-sm hover:bg-[#004182] transition-colors">
-                <Linkedin className="w-4 h-4" /> View Profile
+                className="flex items-center gap-2 px-8 py-3 bg-[#0A66C2] text-white rounded-full font-bold text-sm hover:bg-[#004182] transition-all hover:scale-105 shadow-lg shadow-[#0A66C2]/30 whitespace-nowrap">
+                <Linkedin className="w-4 h-4" /> Connect
               </a>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+              {[
+                { label: 'Connections', value: '500+', icon: '🤝' },
+                { label: 'Certifications', value: '14+', icon: '🏅' },
+                { label: 'Experience', value: '3+ Yrs', icon: '💼' },
+                { label: 'Endorsements', value: '50+', icon: '⭐' },
+              ].map((stat) => (
+                <motion.div key={stat.label} whileHover={{ y: -4, scale: 1.02 }}
+                  className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-[#0A66C2]/40 transition-all text-center">
+                  <div className="text-2xl mb-2">{stat.icon}</div>
+                  <div className="font-display text-xl font-extrabold text-white">{stat.value}</div>
+                  <div className="text-[10px] font-mono text-brand-muted uppercase tracking-widest mt-1">{stat.label}</div>
+                </motion.div>
+              ))}
             </div>
           </div>
         </div>
-      </div>
+
+        {/* Experience & Skills */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+          <div className="glass-card p-6 md:p-8 border-[#0A66C2]/20">
+            <h4 className="font-display text-lg font-bold text-white mb-6 flex items-center gap-2">
+              <span className="text-xl">💼</span> Experience
+            </h4>
+            <div className="space-y-6">
+              {[
+                { role: 'Travel Operations Manager', company: 'Thrillophilia', period: '2024 – Present', desc: 'Leading travel operations, managing vendor relationships, and implementing AI-driven automation for tour management.' },
+                { role: 'Operations Executive', company: 'Trip String', period: '2023 – 2024', desc: 'Managed end-to-end travel experiences, coordinating logistics for domestic and international tours.' },
+                { role: 'Freelance Travel Consultant', company: 'Self-Employed', period: '2022 – 2023', desc: 'Provided customized travel planning and itinerary design for leisure and business travelers.' },
+              ].map((exp, i) => (
+                <motion.div key={i} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+                  className="relative pl-6 border-l-2 border-[#0A66C2]/30">
+                  <div className="absolute left-[-7px] top-1 w-3 h-3 rounded-full bg-[#0A66C2] border-2 border-black" />
+                  <h5 className="font-bold text-white text-sm">{exp.role}</h5>
+                  <p className="text-brand-accent text-xs font-medium">{exp.company}</p>
+                  <p className="text-brand-muted text-[10px] font-mono mt-0.5">{exp.period}</p>
+                  <p className="text-brand-muted text-xs mt-2 leading-relaxed">{exp.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="glass-card p-6 md:p-8 border-[#0A66C2]/20">
+              <h4 className="font-display text-lg font-bold text-white mb-5 flex items-center gap-2">
+                <span className="text-xl">🎯</span> Top Skills
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {['Travel Operations', 'AI & Automation', 'Vendor Management', 'Tour Planning', 'Customer Experience', 'Digital Marketing', 'Itinerary Design', 'Revenue Management', 'Team Leadership', 'Data Analytics', 'CRM Tools', 'Content Strategy'].map((skill) => (
+                  <motion.span key={skill} whileHover={{ scale: 1.05, y: -2 }}
+                    className="px-3 py-1.5 rounded-full bg-[#0A66C2]/10 border border-[#0A66C2]/30 text-xs font-medium text-white hover:bg-[#0A66C2]/20 hover:border-[#0A66C2]/50 transition-all cursor-default">
+                    {skill}
+                  </motion.span>
+                ))}
+              </div>
+            </div>
+            <div className="glass-card p-6 md:p-8 border-[#0A66C2]/20">
+              <h4 className="font-display text-lg font-bold text-white mb-5 flex items-center gap-2">
+                <span className="text-xl">🏅</span> Certifications
+              </h4>
+              <div className="space-y-3">
+                {['Google AI Essentials', 'HubSpot Content Marketing', 'Meta Social Media Marketing', 'IBM Data Science Professional', 'Google Project Management'].map((cert, i) => (
+                  <motion.div key={cert} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#0A66C2]/30 transition-all">
+                    <div className="w-8 h-8 rounded-lg bg-[#0A66C2]/20 flex items-center justify-center text-sm flex-shrink-0">✓</div>
+                    <span className="text-white text-sm font-medium">{cert}</span>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent LinkedIn Posts */}
+        <div className="mt-8">
+          <h4 className="font-display text-lg font-bold text-white mb-6 flex items-center gap-2">
+            <span className="text-xl">📝</span> Recent Activity
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { title: 'How AI is Revolutionizing Travel Operations', excerpt: "After implementing AI-driven automation at Thrillophilia, we saw a 40% improvement in operational efficiency. Here's what I learned...", likes: 128, comments: 23, time: '2 days ago' },
+              { title: 'My Journey: From Travel Enthusiast to Operations Manager', excerpt: "Three years ago, I started with a dream of making travel accessible. Today, I manage operations for one of India's top travel platforms...", likes: 256, comments: 45, time: '1 week ago' },
+              { title: '14 Certifications Later — Why Continuous Learning Matters', excerpt: 'In a rapidly evolving industry, staying ahead means constantly upskilling. Here are the certifications that shaped my career...', likes: 189, comments: 34, time: '2 weeks ago' },
+            ].map((post, i) => (
+              <motion.a key={i} href={LINKEDIN_URL} target="_blank" rel="noreferrer"
+                initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15 }}
+                whileHover={{ y: -6, scale: 1.02 }}
+                className="glass-card p-6 border-[#0A66C2]/20 hover:border-[#0A66C2]/50 transition-all group block">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#0A66C2]/30">
+                    <img src="/vaibhav-photo.png" alt="VG" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <p className="text-white text-sm font-bold">Vaibhav Goyal</p>
+                    <p className="text-brand-muted text-[10px] font-mono">{post.time}</p>
+                  </div>
+                </div>
+                <h5 className="font-bold text-white text-sm mb-2 group-hover:text-[#0A66C2] transition-colors">{post.title}</h5>
+                <p className="text-brand-muted text-xs leading-relaxed line-clamp-3">{post.excerpt}</p>
+                <div className="flex items-center gap-4 mt-4 pt-4 border-t border-white/10">
+                  <span className="text-brand-muted text-xs flex items-center gap-1"><Heart className="w-3 h-3" /> {post.likes}</span>
+                  <span className="text-brand-muted text-xs flex items-center gap-1"><MessageCircle className="w-3 h-3" /> {post.comments}</span>
+                  <span className="ml-auto text-[#0A66C2] text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                    Read More <ExternalLink className="w-3 h-3" />
+                  </span>
+                </div>
+              </motion.a>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-8 text-center">
+          <a href={LINKEDIN_URL} target="_blank" rel="noreferrer"
+            className="inline-flex items-center gap-3 px-10 py-4 bg-[#0A66C2] text-white rounded-full font-bold text-base hover:bg-[#004182] transition-all hover:scale-105 shadow-xl shadow-[#0A66C2]/30">
+            <Linkedin className="w-5 h-5" /> View Full LinkedIn Profile <ExternalLink className="w-4 h-4" />
+          </a>
+        </div>
+      </motion.div>
     </div>
   );
 }

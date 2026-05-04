@@ -72,9 +72,9 @@ export default function CinematicHero() {
           transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           className="text-6xl md:text-8xl lg:text-[7rem] font-display font-extrabold leading-[0.9] tracking-tighter mb-6"
         >
-          STORIES FROM <br />
+          Sneak into my <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-accent via-purple-400 to-rose-400">
-            ROADS LESS REPEATED
+            proportional life
           </span>
         </motion.h1>
 

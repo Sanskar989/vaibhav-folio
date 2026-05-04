@@ -36,7 +36,7 @@ export default function Collaborations() {
   return (
     <div className="pt-32 pb-24 min-h-screen max-w-5xl mx-auto px-6">
       <div className="text-center mb-16">
-        <h1 className="text-4xl md:text-6xl font-display font-extrabold text-white mb-4">COLLABORATIONS</h1>
+        <h1 className="text-4xl md:text-6xl font-display font-extrabold text-white mb-4">EXPERIENCE</h1>
         <p className="text-brand-muted font-mono uppercase tracking-widest text-sm">Professional Journey & Partnerships</p>
       </div>
 
